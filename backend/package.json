@@ -1,0 +1,21 @@
+{
+  "name": "complete-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --check server.js && node --check server2.js && node --check app3.js && node --check ../server.js && node --check ../src/app.js && node --check ../src/services/storage.services.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "mongoose": "^9.11.2",
+    "multer": "^2.4.0"
+  }
+}
