@@ -1,41 +1,65 @@
-import React, { useState,useEffect} from 'react'
-import axios from "axios"
+import React, { useCallback, useEffect, useState } from 'react';
+import api from '../api.js';
 
+const Feed = ({ refreshKey }) => {
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-const Feed = () => {
-
-    const [ posts, setPosts ] = useState([
-        {
-            _id: "1",
-            image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-            caption: "Beautiful scenery",
+    const fetchPosts = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/posts');
+            setPosts(response.data?.data || []);
+            setError('');
+        } catch (requestError) {
+            setError(requestError.response?.data?.message || 'Unable to load image posts.');
+        } finally {
+            setLoading(false);
         }
-    ])
-    useEffect(()=>{
-        axios.get("https//localhost:3000/posts")
-       .then((res=>{
-   console.log(res.data)
-       })
+    }, []);
 
-    ),[])
+    useEffect(() => {
+        fetchPosts();
+    }, [fetchPosts, refreshKey]);
 
+    const deletePost = async (postId) => {
+        try {
+            await api.delete(`/posts/${postId}`);
+            setPosts((current) => current.filter((post) => post._id !== postId));
+            setError('');
+        } catch (requestError) {
+            setError(requestError.response?.data?.message || 'Unable to delete image post.');
+        }
+    };
 
     return (
-        <section className='feed-section'>
-        {
-            posts.length > 0 ? (
-                posts.map((post) => (
-                    <div key={post._id} className='post-card'>
-                        <img src={post.image} alt={post.caption} />
-                        <p>{post.caption}</p>
-                    </div>
-                ))
+        <section className="feed-section">
+            <h2>Image posts</h2>
+            {loading ? (
+                <p>Loading image posts...</p>
+            ) : error ? (
+                <div className="empty-state">
+                    <p className="error-message" role="alert">{error}</p>
+                    <button type="button" onClick={fetchPosts}>Retry</button>
+                </div>
+            ) : posts.length === 0 ? (
+                <p className="empty-state">No image posts yet.</p>
             ) : (
-                <h1>No posts available</h1>
-            )
-        }
+                <div className="post-grid">
+                    {posts.map((post) => (
+                        <article key={post._id} className="post-card">
+                            <img src={post.imageUrl} alt={post.caption} />
+                            <p>{post.caption}</p>
+                            <button type="button" className="danger" onClick={() => deletePost(post._id)}>
+                                Delete
+                            </button>
+                        </article>
+                    ))}
+                </div>
+            )}
         </section>
-    )
-}
+    );
+};
 
-export default Feed
+export default Feed;

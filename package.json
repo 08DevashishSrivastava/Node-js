@@ -2,19 +2,22 @@
   "name": "complete-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --check server.js && node --check server2.js && node --check app3.js && node --check src/app.js && node --check src/app2.js && node --check src/db/db.js && node --check src/models/post.model.js && node --check src/models/photo-post.model.js && node --check src/services/storage.services.js && node --check backend/server.js && node --check backend/server2.js && node --check backend/app3.js && node --check backend/src/app.js && node --check backend/src/app2.js && node --check backend/src/db/db.js && node --check backend/src/models/post.model.js && node --check backend/src/services/storage.services.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@imagekit/nodejs": "^7.12.1",
+    "cors": "^2.8.5",
     "dotenv": "^18.0.8",
     "express": "^5.3.0",
     "mongoose": "^9.11.2",
-    "multer": "^2.4.0",
-    "react-router-dom": "^7.18.4"
+    "multer": "^2.4.0"
   }
 }
