@@ -1,6 +1,8 @@
-# Node.js Notes App with MongoDB
+# Devashish Notes
 
-This project is a full-stack notes and image-post application built with Node.js, Express, MongoDB/Mongoose, ImageKit, and a Vite React frontend. Notes and image-post metadata are persisted in MongoDB. Image content is uploaded to ImageKit and its returned URL is stored with each post.
+A full-stack notes and image-post application built with React, Express, MongoDB, and ImageKit. Create and manage notes, search your collection, and share image posts from a clean, responsive dashboard.
+
+Notes and image-post metadata are stored in MongoDB. When ImageKit is configured, image files are uploaded there and the returned image URLs are saved with their posts.
 
 ## Overview
 
@@ -57,6 +59,18 @@ Node-js-main/
 
 The root application is the working source of truth. The duplicate folders were checked and are not the canonical backend/frontend implementation.
 
+## Features
+
+- Create, browse, search, edit, and delete notes backed by MongoDB
+- Responsive dashboard with note counts, readable timestamps, and empty/loading/error states
+- Edit notes in an in-app dialog; confirm before deleting a note
+- Create and browse image posts with captions
+- Validate image type, file content, and size before upload
+- Store uploaded image URLs and post metadata in MongoDB
+- Check backend, database, and ImageKit configuration through the health endpoint
+
+Image uploads require a valid ImageKit private key. Notes work without ImageKit credentials.
+
 ## Prerequisites
 
 - Node.js 18+ recommended
@@ -75,7 +89,7 @@ CLIENT_URL=http://localhost:5173
 IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
 ```
 
-Image uploads require a valid ImageKit **private key** from the ImageKit dashboard. Replace the sample placeholder in root `.env` with a rotated key, restart the backend, then use **Check configuration again** in the frontend. This key is only used on the backend; do not add it to any `VITE_*` variable or frontend environment file. Image URLs and file IDs come from ImageKit's upload response.
+Image uploads require a valid ImageKit **private key** from the ImageKit dashboard. Replace the sample placeholder in root `.env` with a rotated key, restart the backend, then use **Check configuration again** in the frontend. The key is only used by the backend; never add it to a `VITE_*` variable or frontend environment file. Image URLs and file IDs come from ImageKit's upload response.
 
 Important:
 
@@ -87,33 +101,31 @@ Important:
 
 ## Install dependencies
 
-From the project root:
+Open PowerShell in the project root:
 
 ```powershell
+Set-Location C:\Users\devas\Downloads\Node-js-main\Node-js-main
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 npm install
 ```
 
-From the frontend folder:
+Install frontend dependencies in a second PowerShell window:
 
 ```powershell
-cd backend/frontend/Devashish
+Set-Location C:\Users\devas\Downloads\Node-js-main\Node-js-main\backend\frontend\Devashish
 npm install
 ```
 
 ## Run the backend
 
-Start the backend from the project root. Both `server.js` and the legacy
-`backend/server.js` entry point now start the same API:
+Start MongoDB first, then start the API in a PowerShell window:
 
 ```powershell
 Set-Location C:\Users\devas\Downloads\Node-js-main\Node-js-main
 npm start
 ```
 
-Alternatively, from the `backend` directory run `npm start`. The database
-connection is required before the API starts; if MongoDB is unavailable, start
-MongoDB or update the root `.env` `MONGO_URI` before trying again.
+The backend connects to MongoDB before listening. If the database is unavailable, the backend exits with an error instead of starting in a broken state.
 
 The backend will fail fast if MongoDB is not reachable and will print a clear error like:
 
@@ -123,12 +135,14 @@ MongoDB connection failed: connect ECONNREFUSED 127.0.0.1:27017
 
 ## Run the frontend
 
+In a second PowerShell window:
+
 ```powershell
 Set-Location C:\Users\devas\Downloads\Node-js-main\Node-js-main\backend\frontend\Devashish
 npm run dev
 ```
 
-Then open:
+Open:
 
 ```text
 http://localhost:5173
@@ -158,10 +172,13 @@ Example response:
     "status": "healthy",
     "dbConnected": true,
     "dbState": 1,
+    "imageKitConfigured": false,
     "timestamp": "2026-10-18T00:00:00.000Z"
   }
 }
 ```
+
+`imageKitConfigured` is `true` only when the backend has a non-placeholder ImageKit private key. A healthy database does not require ImageKit to be configured.
 
 ### Get all notes
 
@@ -205,6 +222,8 @@ Example body:
   "description": "Updated description"
 }
 ```
+
+Both `title` and `description` can be included in the update request. At least one field is required.
 
 ### Delete a note
 
@@ -267,16 +286,9 @@ MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/node_js_app
 
 ## Frontend behavior
 
-The Vite frontend:
+The Vite frontend loads and manages notes through the API, with title/description validation, searchable note cards, an edit dialog, and delete confirmation. It also loads, creates, and deletes image posts. Upload is disabled until the backend confirms ImageKit is configured, and the UI explains how to set up the private key.
 
-- Loads existing notes from the backend
-- Submits new notes to `POST /api/notes`
-- Allows editing note descriptions via `PATCH /api/notes/:id`
-- Deletes notes via `DELETE /api/notes/:id`
-- Shows loading, validation, empty, and error states
-- Uses `VITE_API_URL` if defined; otherwise it defaults to `http://localhost:5000/api`
-- Uploads images and displays persisted image posts when ImageKit is configured
-- Displays a clear upload error when ImageKit credentials are not configured
+The API base URL is `VITE_API_URL` when set; otherwise it defaults to `http://localhost:5000/api`.
 
 The frontend environment template is `backend/frontend/Devashish/.env.example`.
 If you change the backend address, copy it to that folder's `.env` and set
@@ -322,7 +334,7 @@ If you change the backend address, copy it to that folder's `.env` and set
 
 ## Verification status
 
-The current implementation was verified against the running local MongoDB:
+The current implementation has been verified against a running local MongoDB:
 
 - Backend syntax checks, including compatibility entry points: pass
 - Frontend production build: pass
@@ -332,6 +344,7 @@ The current implementation was verified against the running local MongoDB:
 - Image-post listing on canonical and legacy routes: pass
 - Multipart image validation and missing ImageKit configuration: HTTP 503, with no false MongoDB post created
 - ImageKit upload to the external service: not verified because `IMAGEKIT_PRIVATE_KEY` is not configured in this environment
+- Note search and edit-dialog open/close behavior: verified in the browser
 
 ## Final notes
 
